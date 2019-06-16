@@ -11,9 +11,19 @@ type Customer struct {
 	Email string
 }
 
-func NewCustomer(id, age int, name, gender, phone, email string) Customer {
+func NewCustomer(id int, name, gender string, age int,  phone, email string) Customer {
 	return Customer{
 		Id: id,
+		Name:name,
+		Gender:gender,
+		Age: age,
+		Phone: phone,
+		Email: email,
+	}
+}
+
+func NewCustomer2(name, gender string, age int, phone, email string) Customer {
+	return Customer{
 		Name:name,
 		Gender:gender,
 		Age: age,
