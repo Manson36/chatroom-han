@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/chatroom-han/chatroom/common"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -55,6 +56,31 @@ func (this *UserDao) Login(userId int, userPwd string) (user *User, err error) {
 
 	if userPwd != user.UserPwd {
 		err = ERROR_USER_PWD
+		return
+	}
+	return
+}
+
+func (this *UserDao) Register(user *message.User) (err error) {
+	conn := this.pool.Get()
+	defer conn.Close()
+
+	_, err = this.getUserById(conn, user.UserId)
+	if err == nil {
+		err = ERROR_USER_EXISTS
+		return
+	}
+
+	//这时说明UserId在Redis中未存在，可以注册
+	data, err := json.Marshal(user)
+	if err != nil {
+		fmt.Println("json marshal err=", err)
+		return
+	}
+
+	_, err = conn.Do("HSet", "users", user.UserId, string(data))
+	if err != nil {
+		fmt.Println("保存用户注册err=", err)
 		return
 	}
 	return

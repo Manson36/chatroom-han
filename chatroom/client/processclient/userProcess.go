@@ -7,10 +7,74 @@ import (
 	"github.com/chatroom-han/chatroom/client/utils"
 	"github.com/chatroom-han/chatroom/common"
 	"net"
+	"os"
 )
 
 type UserProcess struct {
 	//暂时不需要字段
+}
+
+func (this *UserProcess) Register(userId int, userPwd string, userName string) (err error) {
+	//1 连接到服务器
+	conn, err := net.Dial("tcp", "localhost:8889")
+	if err != nil {
+		fmt.Println("net.Dial error=", err)
+		return
+	}
+
+	defer conn.Close()
+
+	var mes message.Message
+	mes.Type = message.RegisterMesType
+
+	var RegisterMes message.RegisterMes
+	RegisterMes.User.UserId = userId
+	RegisterMes.User.UserPwd = userPwd
+	RegisterMes.User.UserName = userName
+
+	data, err := json.Marshal(RegisterMes) //data 是byte类型
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+
+	mes.Data = string(data)
+
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("json.Marshal(mes) error =", err)
+		return
+	}
+
+	//创建一个Transfer实例
+	tf := &utils.Transfer{
+		Conn: conn,
+	}
+
+	err = tf.WritePkg(data)
+	if err != nil {
+		fmt.Println("注册发送信息错误 err=", err)
+		return
+	}
+
+	mes, err = tf.ReadPkg() //此时的mes为RegisterResMes
+	if err != nil {
+		fmt.Println("readPkg err =", err)
+		return
+	}
+
+	//将Data部分反序列化成RegisterResMes
+	var registerResMes message.RegisterResMes
+	err = json.Unmarshal([]byte(mes.Data), &registerResMes)
+
+	if registerResMes.Code == 200 {
+		fmt.Println("注册成功，你重新登录吧")
+	} else {
+		fmt.Println(registerResMes.Error)
+	}
+	os.Exit(0)
+
+	return
 }
 
 func (this *UserProcess) Login(userId int, userPwd string) (err error) {

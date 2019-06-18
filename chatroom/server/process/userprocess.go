@@ -13,6 +13,52 @@ type UserProcess struct {
 	Conn net.Conn
 }
 
+func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
+	var registerMes message.RegisterMes
+	err = json.Unmarshal([]byte(mes.Data), &registerMes)
+	if err != nil {
+		fmt.Println("json unmarshal error", err)
+		return
+	}
+
+	var resMes message.Message
+	resMes.Type = message.RegisterResMesType
+	var registerResMes message.RegisterResMes
+
+	err = model.MyUserDao.Register(&registerMes.User)
+	if err != nil {
+		if err == model.ERROR_USER_EXISTS {
+			registerResMes.Code = 505
+			registerResMes.Error = err.Error()
+		} else {
+			registerResMes.Code = 506
+			registerResMes.Error = "注册发生未知错误"
+		}
+	}else {
+		registerResMes.Code = 200
+	}
+
+	data, err := json.Marshal(registerResMes)
+	if err != nil {
+		fmt.Println("json.Marshal error", err)
+		return
+	}
+
+	resMes.Data = string(data)
+
+	data, err = json.Marshal(resMes)
+	if err != nil {
+		fmt.Println("json.Marshal error", err)
+		return
+	}
+
+	tf := &utils.Transfer{
+		Conn: this.Conn,
+	}
+	err = tf.WritePkg(data)
+	return
+}
+
 func (this *UserProcess) ServerProcessLogin(mes *message.Message) (err error) {
 	var loginMes message.LoginMes
 	err = json.Unmarshal([]byte(mes.Data), &loginMes)
