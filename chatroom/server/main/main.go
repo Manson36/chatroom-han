@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/chatroom-han/chatroom/server/model"
 	"net"
+	"time"
 )
 
 func process(conn net.Conn) {
@@ -17,6 +19,16 @@ func process(conn net.Conn) {
 		fmt.Println("客户端与服务端的通信出问题了", err)
 		return
 	}
+}
+
+func init() {
+	//当服务器启动时，初始化一个redis的链接池
+	initpool("127.0.0.1:6379", 16, 0, 300 *time.Second)
+	initUserDao()
+}
+
+func initUserDao() {
+	model.MyUserDao = model.NewUserDao(pool)
 }
 
 func main() {
