@@ -152,6 +152,12 @@ func (this *UserProcess) Login(userId int, userPwd string) (err error) {
 	}
 
 	if loginResMes.Code ==200 {
+		//显示当前在线用户列表，遍历loginResMes.usersId
+		for _, v := range loginResMes.UsersId {
+			fmt.Println("用户id:", v)
+		}
+		fmt.Println()
+
 		go serverProcessMes(conn)
 
 		//调用二级菜单
