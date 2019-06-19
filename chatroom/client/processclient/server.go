@@ -1,8 +1,10 @@
 package processclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/chatroom-han/chatroom/client/utils"
+	"github.com/chatroom-han/chatroom/common"
 	"net"
 	"os"
 )
@@ -20,7 +22,8 @@ func ShowMenu() {
 		fmt.Scanln(&key)
 		switch key {
 		case 1:
-			fmt.Println("显示在线用户列表")
+			//fmt.Println("显示在线用户列表")
+			outputOnlineUser()
 		case 2:
 			fmt.Println("发送消息")
 		case 3:
@@ -47,6 +50,16 @@ func serverProcessMes(conn net.Conn) {
 		}
 
 		//读取到消息，又是下一步逻辑
-		fmt.Println("mes=", mes)
+		//fmt.Println("mes=", mes)
+		switch mes.Type {
+		case message.NotifyUserStatusMesType: //有人上线了
+			//处理：1.取出信息，
+			var notifyUserStatusMes message.NotifyUserStatusMes
+			json.Unmarshal([]byte(mes.Data), &notifyUserStatusMes)
+			// 2.将UserId添加到map中
+			updateUserStatus(&notifyUserStatusMes)
+		default:
+			fmt.Println("服务器返回未知的消息类型")
+		}
 	}
 }
