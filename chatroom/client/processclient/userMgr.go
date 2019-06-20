@@ -2,10 +2,12 @@ package processclient
 
 import (
 	"fmt"
+	"github.com/chatroom-han/chatroom/client/model"
 	"github.com/chatroom-han/chatroom/common"
 )
 
 var onlineUsers map[int]*message.User = make(map[int]*message.User, 10)
+var CurUser model.CurUser //在登陆成功后，初始化
 
 //在客户端显示当前在线用户
 func outputOnlineUser() {
